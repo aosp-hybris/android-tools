@@ -22,6 +22,11 @@
 #include <stdio.h>
 #include <string.h>
 
+#ifdef __linux__
+#include <linux/reboot.h>
+#include <sys/syscall.h>
+#endif
+
 #include <cutils/android_reboot.h>
 
 /* Check to see if /proc/mounts contains any writeable filesystems
@@ -121,8 +126,14 @@ int android_reboot(int cmd, int flags, char *arg)
             break;
 
         case ANDROID_RB_RESTART2:
+#ifdef ANDROID
             ret = __reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2,
                            LINUX_REBOOT_CMD_RESTART2, arg);
+
+#else
+            ret = syscall(SYS_reboot, LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2,
+                          LINUX_REBOOT_CMD_RESTART2, arg);
+#endif
             break;
 
         default:
